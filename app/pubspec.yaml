@@ -1,0 +1,27 @@
+name: hebrew_learn
+description: Learn 1000 Hebrew words, 1000 verbs, 100 daily sentences and cursive Hebrew handwriting.
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_tts: ^4.0.2
+  shared_preferences: ^2.2.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/data/
+  fonts:
+    - family: Cursive
+      fonts:
+        - asset: assets/fonts/cursive.ttf
