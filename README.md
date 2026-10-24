@@ -1,5 +1,7 @@
 # LearnHebrew
 
+**Live demo:** https://canmertdogan.github.io/learnhebrew/
+
 LearnHebrew is a polished, scriptorium-inspired Hebrew learning app built around Torah passages, vocabulary, verbs, sentences, handwriting practice, and a searchable dictionary. It runs as a web app and is packaged for macOS and Android.
 
 ## Highlights
