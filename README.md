@@ -10,6 +10,7 @@ LearnHebrew is a polished, scriptorium-inspired Hebrew learning app built around
 - **Torah reader** with clickable words and contextual meanings.
 - **Vocabulary, verbs, and sentences** with flashcards and quizzes.
 - **Handwriting practice** with tracing and scoring.
+- **Nikud (vowel points) workshop** with a guided chart, sound drill, and a cheat sheet (alphabet, nikud, prefixes, pronouns).
 - **Hebrew–Turkish dictionary** with thousands of entries.
 - **Turkish and English** interface.
 - **Sound, animations, transliteration, and daily goals**.

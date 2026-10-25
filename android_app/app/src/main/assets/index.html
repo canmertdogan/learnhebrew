@@ -2334,6 +2334,36 @@ canvas#trace-canvas {
   50% { opacity: 0.65; }
 }
 
+/* ---------- Nikud & Cheat Sheet ---------- */
+.nikud-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+.nikud-card { background: var(--parchment-light); border: 1px solid rgba(140,100,34,0.35); border-radius: 14px; padding: 14px 12px; text-align: center; box-shadow: 0 6px 16px rgba(40,24,8,0.25); }
+.nikud-glyph { font-size: 3rem; line-height: 1.1; color: var(--ink-deep); margin-bottom: 6px; }
+.nikud-name { font-size: 0.85rem; color: var(--gold-bronze); font-weight: 700; letter-spacing: 0.5px; }
+.nikud-sound { font-size: 0.8rem; color: var(--ink-faded); font-style: italic; margin: 4px 0 8px; }
+.nikud-example { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.nikud-ex-word { font-size: 1.5rem; color: var(--ink-deep); }
+.nikud-ex-tr { font-size: 0.78rem; color: var(--parchment-dark); }
+.nikud-q-glyph { font-size: 5rem; line-height: 1.1; color: var(--ink-deep); margin: 8px 0 14px; }
+.nikud-q-prompt { font-size: 1rem; color: var(--parchment-dark); font-style: italic; margin-bottom: 16px; }
+.nikud-options { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.nikud-opt { padding: 10px 22px; border: 1.5px solid var(--gold-bronze); border-radius: 999px; background: #fffaf0; color: var(--ink-deep); font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.15s ease; min-width: 70px; }
+.nikud-opt:hover:not(:disabled) { background: var(--gold-leaf); color: var(--ink-deep); }
+.nikud-opt.correct { background: #d6ead4; border-color: #2f6b3a; color: #1f4a28; }
+.nikud-opt.wrong { background: #f3d6d2; border-color: var(--crimson-wax); color: var(--crimson-wax); }
+.nikud-opt:disabled { cursor: default; opacity: 0.9; }
+.nikud-feedback { margin: 14px 0 6px; font-size: 0.95rem; min-height: 1.2em; }
+.nikud-score { font-size: 0.85rem; color: var(--ink-faded); }
+.cheat-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.cheat-th { text-align: left; padding: 8px 10px; border-bottom: 2px solid var(--gold-bronze); color: var(--gold-bright); font-weight: 700; font-size: 0.78rem; letter-spacing: 0.5px; text-transform: uppercase; }
+.cheat-td { padding: 7px 10px; border-bottom: 1px solid rgba(140,100,34,0.2); color: var(--parchment-dark); vertical-align: middle; }
+.cheat-glyph { font-size: 1.3rem; color: var(--ink-deep); text-align: center; }
+@media (max-width: 760px) {
+  .nikud-grid { grid-template-columns: repeat(2, 1fr); }
+  .nikud-glyph { font-size: 2.4rem; }
+  .nikud-q-glyph { font-size: 3.6rem; }
+  .nikud-opt { padding: 8px 16px; min-width: 60px; }
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 760px) {
   header { padding: 10px 14px; }
@@ -2781,6 +2811,9 @@ body.no-anim *::after {
         <button class="rail-btn" data-view="handwriting" onclick="App.openHandwriting('letters')" data-i18n-title="nav.write" title="Handwriting">
           <span class="rail-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg></span><span class="rail-label" data-i18n="nav.write">Yaz</span>
         </button>
+        <button class="rail-btn" data-view="nikud" onclick="App.openNikud('guide')" data-i18n-title="nav.nikud" title="Nikud">
+          <span class="rail-ico">אָ</span><span class="rail-label" data-i18n="nav.nikud">Nikud</span>
+        </button>
         <button class="rail-btn" data-view="torah" onclick="App.openTorah()" data-i18n-title="nav.torah" title="Torah">
           <span class="rail-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6"/><path d="M6 4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2"/><path d="M8 8h6M8 12h6M8 16h4"/></svg></span><span class="rail-label" data-i18n="nav.torah">Tevrat</span>
         </button>
@@ -2822,6 +2855,9 @@ body.no-anim *::after {
       </button>
       <button class="bottom-nav-btn" onclick="App.openHandwriting('letters')" data-view="handwriting">
         <span class="bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg></span><span class="bn-label" data-i18n="nav.write">Yaz</span>
+      </button>
+      <button class="bottom-nav-btn" onclick="App.openNikud('guide')" data-view="nikud">
+        <span class="bn-icon" style="font-size:1.1rem; font-family:'GveretLevin',serif;">אָ</span><span class="bn-label" data-i18n="nav.nikud">Nikud</span>
       </button>
       <button class="bottom-nav-btn" onclick="App.openTorah()" data-view="torah">
         <span class="bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6"/><path d="M6 4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2"/><path d="M8 8h6M8 12h6M8 16h4"/></svg></span><span class="bn-label" data-i18n="nav.torah">Tevrat</span>
@@ -3056,6 +3092,44 @@ body.no-anim *::after {
           'settings.goalSub': "Reviews you aim to finish each day.",
 
           'nav.prof': "Profile",
+          'nav.nikud': "Nikud",
+          'nikud.title': "Nikud Workshop",
+          'nikud.tabGuide': "Guide",
+          'nikud.tabDrill': "Drill",
+          'nikud.tabCheat': "Cheat Sheet",
+          'nikud.guideTitle': "Hebrew Vowel Points (Nikud)",
+          'nikud.guideIntro': "Nikud are the dots and dashes placed on consonants to show vowel sounds. Mastering them unlocks reading without transliteration.",
+          'nikud.rulesTitle': "Quick rules",
+          'nikud.rule1': "Shva ( ְ ) is usually silent or a very short 'ə'; at the start of a word it is often not pronounced.",
+          'nikud.rule2': "Holam ( ֹ ) can sit on a consonant or appear as vav-holam (וֹ) — both sound 'o'.",
+          'nikud.rule3': "Dagesh ( ּ ) doubles a consonant or turns ב/כ/פ into b/k/p (without it they are v/kh/f).",
+          'nikud.drillQ': "Which sound does this letter + mark make?",
+          'nikud.drillHint': "Pick the vowel sound. Wrong answers still count toward your streak.",
+          'nikud.correct': "Correct!",
+          'nikud.wrong': "Not quite",
+          'nikud.next': "Next question",
+          'nikud.score': "Score: {0} / {1}",
+          'cheat.alphaTitle': "Hebrew Alphabet (27 letters)",
+          'cheat.nikudTitle': "Vowel Points",
+          'cheat.prefixTitle': "Common Prefixes",
+          'cheat.pronTitle': "Personal Pronouns",
+          'cheat.colLetter': "Letter",
+          'cheat.colName': "Name",
+          'cheat.colSound': "Sound",
+          'cheat.colSign': "Sign",
+          'cheat.colExample': "Example",
+          'cheat.colPrefix': "Prefix",
+          'cheat.colMeaning': "Meaning",
+          'cheat.colHe': "Hebrew",
+          'cheat.colTr': "Turkish",
+          'cheat.colEn': "English",
+          'cheat.the': "the (definite article)",
+          'cheat.in': "in / with",
+          'cheat.to': "to / for",
+          'cheat.like': "like / as",
+          'cheat.from': "from",
+          'cheat.and': "and",
+          'cheat.that': "that / which",
           'dash.level': "Level",
           'dash.todayPath': "Today's Path",
           'dash.continue': "Continue Journey",
@@ -3283,6 +3357,44 @@ body.no-anim *::after {
           'settings.goalSub': "Her gün bitirmeyi hedeflediğin tekrar sayısı.",
 
           'nav.prof': "Profil",
+          'nav.nikud': "Hareke",
+          'nikud.title': "Hareke Atölyesi",
+          'nikud.tabGuide': "Kılavuz",
+          'nikud.tabDrill': "Egzersiz",
+          'nikud.tabCheat': "Kopya Kağıdı",
+          'nikud.guideTitle': "İbranice Harekeler (Nikud)",
+          'nikud.guideIntro': "Harekeler (nikud), ünsüzlerin üstüne, altına veya içine konan nokta ve çizgilerdir; sesli harfleri gösterir. Bunları öğrenmek, çevirisiz okumanın anahtarıdır.",
+          'nikud.rulesTitle': "Hızlı kurallar",
+          'nikud.rule1': "Shva ( ְ ) genellikle sessiz ya da çok kısa bir 'ə'dir; kelime başında çoğu kez okunmaz.",
+          'nikud.rule2': "Holam ( ֹ ) bir ünsüzün üstünde ya da vav-holam (וֹ) olarak görünür — ikisi de 'o' sesi verir.",
+          'nikud.rule3': "Dagesh ( ּ ) bir ünsüzü çiftler ya da ב/כ/פ harflerini b/k/p yapar (dageshsiz v/kh/f olurlar).",
+          'nikud.drillQ': "Bu harf + işaret hangi sesi verir?",
+          'nikud.drillHint': "Sesli harfi seç. Yanlışlar da serin için sayılır.",
+          'nikud.correct': "Doğru!",
+          'nikud.wrong': "Tam değil",
+          'nikud.next': "Sonraki soru",
+          'nikud.score': "Puan: {0} / {1}",
+          'cheat.alphaTitle': "İbranice Alfabe (27 harf)",
+          'cheat.nikudTitle': "Harekeler",
+          'cheat.prefixTitle': "Yaygın Önekler",
+          'cheat.pronTitle': "Şahıs Zamirleri",
+          'cheat.colLetter': "Harf",
+          'cheat.colName': "Ad",
+          'cheat.colSound': "Ses",
+          'cheat.colSign': "İşaret",
+          'cheat.colExample': "Örnek",
+          'cheat.colPrefix': "Önek",
+          'cheat.colMeaning': "Anlam",
+          'cheat.colHe': "İbranice",
+          'cheat.colTr': "Türkçe",
+          'cheat.colEn': "İngilizce",
+          'cheat.the': "belirli artikel (the)",
+          'cheat.in': "içinde / ile",
+          'cheat.to': "...e / ...için",
+          'cheat.like': "gibi / olarak",
+          'cheat.from': "...den / ...dan",
+          'cheat.and': "ve",
+          'cheat.that': "ki / ...olduğu",
           'dash.level': "Seviye",
           'dash.todayPath': "Bugünün Yolu",
           'dash.continue': "Yolculuğa Devam",
@@ -3449,6 +3561,21 @@ body.no-anim *::after {
       { text: 'ש', name: 'Shin', print: 'sh / s', tip: 'Draw a wide outer cup with a small inner loop on the left.' },
       { text: 'ת', name: 'Tav', print: 't', tip: 'Draw the right-hand arch, then add the left leg curving outward at the foot.' }
     ];
+
+    const NIKUD_SIGNS = [
+      { id:'kamats', glyph:'אָ', nameHe:'קָמָץ', soundKey:'a', soundEx:"'a' (uzun)", example:'שָׁלוֹם', translit:'shalom', meaning:{tr:'selam / barış', en:'peace / hello'} },
+      { id:'patach', glyph:'אַ', nameHe:'פַּתַח', soundKey:'a', soundEx:"'a' (kısa)", example:'אַתָּה', translit:'atta', meaning:{tr:'sen (erkek)', en:'you (m.)'} },
+      { id:'hataf', glyph:'אֲ', nameHe:'חֲטַף־פַּתַח', soundKey:'a', soundEx:"'a' (çok kısa)", example:'אֲנִי', translit:'ani', meaning:{tr:'ben', en:'I'} },
+      { id:'tsere', glyph:'אֵ', nameHe:'צֵרֵי', soundKey:'e', soundEx:"'e' (uzun)", example:'אֵין', translit:'ein', meaning:{tr:'yok / değil', en:'there is not'} },
+      { id:'segol', glyph:'אֶ', nameHe:'סֶגּוֹל', soundKey:'e', soundEx:"'e' (kısa)", example:'אֶרֶץ', translit:'erets', meaning:{tr:'ülke / yer', en:'land / earth'} },
+      { id:'hiriq', glyph:'אִ', nameHe:'חִירִיק', soundKey:'i', soundEx:"'i' (ince)", example:'אִישׁ', translit:'ish', meaning:{tr:'adam / kişi', en:'man / person'} },
+      { id:'holam', glyph:'אֹ', nameHe:'חוֹלָם', soundKey:'o', soundEx:"'o' (yuvarlak)", example:'רֹאשׁ', translit:'rosh', meaning:{tr:'baş', en:'head'} },
+      { id:'kubutz', glyph:'אֻ', nameHe:'קֻבּוּץ', soundKey:'u', soundEx:"'u' (kısa)", example:'שֻׁלחָן', translit:'shulchan', meaning:{tr:'masa', en:'table'} },
+      { id:'shuruk', glyph:'וּ', nameHe:'שׁוּרוּק', soundKey:'u', soundEx:"'u' (uzun)", example:'קוּם', translit:'kum', meaning:{tr:'kalk', en:'arise'} },
+      { id:'shva', glyph:'אְ', nameHe:'שְׁוָא', soundKey:'schwa', soundEx:"'ə' (sessiz/kısa)", example:'דְּבָרִים', translit:"d'varim", meaning:{tr:'sözler', en:'words'} }
+    ];
+    const NIKUD_DRILL_LETTERS = ['ב','ג','ד','ה','ז','ח','ט','כ','ל','מ','נ','ס','ע','פ','צ','ק','ר','ש','ת'];
+    const NIKUD_SOUND_LABEL = { a:'a', e:'e', i:'i', o:'o', u:'u', schwa:'ə' };
 
     const PRACTICE_WORDS = [
       { text: 'שלום', name: 'Shalom', print: 'Peace / Hello', tip: 'Write right to left: Shin (ש), Lamed (ל), Vav (ו), Final Mem (ם).' },
@@ -3665,7 +3792,7 @@ body.no-anim *::after {
     ];
 
     const App = {
-      state: { view: 'dashboard', category: 'words', mode: 'flashcards', hwTab: 'letters', hwIndex: 0 },
+      state: { view: 'dashboard', category: 'words', mode: 'flashcards', hwTab: 'letters', hwIndex: 0, nikudTab: 'guide' },
 
       init() {
         const tt = document.getElementById('toggle-translit');
@@ -3759,6 +3886,28 @@ body.no-anim *::after {
         this.render();
       },
 
+      openNikud(tab = 'guide') {
+        this.state.view = 'nikud';
+        this.state.nikudTab = tab || 'guide';
+        if (tab === 'drill') this.state.nikudQ = null;
+        this.render();
+      },
+      answerNikud(choiceIdx) {
+        const q = this.state.nikudQ;
+        if (!q || q.answered) return;
+        q.choice = choiceIdx;
+        q.answered = true;
+        const ok = choiceIdx === q.correctIdx;
+        Store.grade('nikud:' + q.signId + ':' + q.letter, ok, true);
+        this.state.nikudScore = this.state.nikudScore || { c: 0, r: 0 };
+        this.state.nikudScore.r++;
+        if (ok) this.state.nikudScore.c++;
+        this.render();
+      },
+      nextNikud() {
+        this.state.nikudQ = null;
+        this.render();
+      },
       sealTorahPassage() {
         const list = window.HEBREW_TORAH || [];
         const idx = this.state.torahPassageIdx || 0;
@@ -3858,6 +4007,7 @@ body.no-anim *::after {
         if (this.state.view === 'torah') return this.renderTorah(root);
         if (this.state.view === 'dictionary') return this.renderDictionary(root);
         if (this.state.view === 'settings') return this.renderSettings(root);
+        if (this.state.view === 'nikud') return this.renderNikud(root);
       },
 
       updateNav() {
@@ -3870,7 +4020,8 @@ body.no-anim *::after {
           dashboard: 'nav.home', home: 'nav.home', study: 'nav.home',
           handwriting: 'nav.hw', trace: 'nav.hw',
           torah: 'nav.torah', dictionary: 'nav.dictionary',
-          settings: 'nav.settings'
+          settings: 'nav.settings',
+          nikud: 'nav.nikud'
         }[view];
         const h = document.getElementById('page-heading');
         if (h) h.textContent = t(headingKey || 'nav.home');
@@ -5452,7 +5603,145 @@ body.no-anim *::after {
             </div>
           </div>
         `;
-      }
+      },
+
+      renderNikud(root) {
+        I18N.applyChrome();
+        const tab = this.state.nikudTab || 'guide';
+        const tabs = [
+          { key:'guide', label: t('nikud.tabGuide') },
+          { key:'drill', label: t('nikud.tabDrill') },
+          { key:'cheats', label: t('nikud.tabCheat') }
+        ];
+        const tabBtns = tabs.map(t2 => `<button class="tab-btn ${tab === t2.key ? 'active' : ''}" onclick="App.openNikud('${t2.key}')">${t2.label}</button>`).join('');
+
+        let body = '';
+        if (tab === 'guide') {
+          const cards = NIKUD_SIGNS.map(s => `
+            <div class="nikud-card">
+              <div class="nikud-glyph">${s.glyph}</div>
+              <div class="nikud-name">${s.nameHe}</div>
+              <div class="nikud-sound">${s.soundEx}</div>
+              <div class="nikud-example">
+                <span class="nikud-ex-word">${s.example}</span>
+                <span class="nikud-ex-tr">${s.translit} — ${I18N.lang === 'tr' ? s.meaning.tr : s.meaning.en}</span>
+                <button class="speak-seal-btn" onclick="Store.speak(${JSON.stringify(s.example).replace(/"/g,'&quot;')})">🔊</button>
+              </div>
+            </div>
+          `).join('');
+          body = `
+            <section class="dash-panel" style="margin-bottom:16px;">
+              <h3 style="margin:0 0 6px; color:var(--gold-bright);">${t('nikud.guideTitle')}</h3>
+              <p style="margin:0; color:var(--parchment-dark); font-style:italic; font-size:0.9rem; line-height:1.5;">${t('nikud.guideIntro')}</p>
+            </section>
+            <div class="nikud-grid">${cards}</div>
+            <section class="dash-panel" style="margin-top:16px;">
+              <h3 style="margin:0 0 6px; color:var(--gold-bright);">${t('nikud.rulesTitle')}</h3>
+              <ul style="margin:6px 0 0; padding-left:20px; color:var(--parchment-dark); font-size:0.9rem; line-height:1.6;">
+                <li>${t('nikud.rule1')}</li>
+                <li>${t('nikud.rule2')}</li>
+                <li>${t('nikud.rule3')}</li>
+              </ul>
+            </section>
+          `;
+        } else if (tab === 'drill') {
+          let q = this.state.nikudQ;
+          if (!q) {
+            const sign = NIKUD_SIGNS[Math.floor(Math.random() * NIKUD_SIGNS.length)];
+            const letter = NIKUD_DRILL_LETTERS[Math.floor(Math.random() * NIKUD_DRILL_LETTERS.length)];
+            const mark = sign.glyph.slice(1);
+            const full = letter + mark;
+            const keys = Object.keys(NIKUD_SOUND_LABEL);
+            const opts = new Set([sign.soundKey]);
+            while (opts.size < 4) opts.add(keys[Math.floor(Math.random() * keys.length)]);
+            const optArr = [...opts].sort(() => Math.random() - 0.5);
+            const correctIdx = optArr.indexOf(sign.soundKey);
+            q = { signId: sign.id, letter, mark, full, correctIdx, options: optArr.map(k => NIKUD_SOUND_LABEL[k].toUpperCase()), answered: false, choice: null };
+            this.state.nikudQ = q;
+          }
+          const score = this.state.nikudScore || { c: 0, r: 0 };
+          const pct = score.r ? Math.round((score.c / score.r) * 100) : 0;
+          const optsHtml = q.options.map((o, i) => {
+            let cls = 'nikud-opt';
+            if (q.answered) {
+              if (i === q.correctIdx) cls += ' correct';
+              else if (i === q.choice) cls += ' wrong';
+            }
+            return `<button class="${cls}" ${q.answered ? 'disabled' : ''} onclick="App.answerNikud(${i})">${o}</button>`;
+          }).join('');
+          const fb = q.answered
+            ? (q.choice === q.correctIdx ? `<span style="color:#2f6b3a; font-weight:700;">✓ ${t('nikud.correct')}</span>` : `<span style="color:var(--crimson-wax); font-weight:700;">✗ ${t('nikud.wrong')} — ${q.options[q.correctIdx]}</span>`)
+            : '';
+          body = `
+            <section class="dash-panel" style="text-align:center; padding:28px 22px;">
+              <div class="nikud-q-glyph">${q.full}</div>
+              <div class="nikud-q-prompt">${t('nikud.drillQ')}</div>
+              <div class="nikud-options">${optsHtml}</div>
+              <div class="nikud-feedback">${fb}</div>
+              <div class="nikud-score">${t('nikud.score', score.c, score.r)} · ${pct}%</div>
+              ${q.answered ? `<button class="btn primary" style="margin-top:14px;" onclick="App.nextNikud()">${t('nikud.next')}</button>` : ''}
+            </section>
+            <div style="text-align:center; margin-top:10px; font-size:0.8rem; color:var(--ink-faded); font-style:italic;">${t('nikud.drillHint')}</div>
+          `;
+        } else {
+          const alphaRows = LETTERS.map(L => `<tr><td class="cheat-td cheat-glyph">${L.text}</td><td class="cheat-td">${L.name}</td><td class="cheat-td">${L.print}</td></tr>`).join('');
+          const nikudRows = NIKUD_SIGNS.map(s => `<tr><td class="cheat-td cheat-glyph">${s.glyph}</td><td class="cheat-td">${s.nameHe}</td><td class="cheat-td">${NIKUD_SOUND_LABEL[s.soundKey]}</td><td class="cheat-td">${s.example} <span style="color:var(--ink-faded); font-size:0.8rem;">(${s.translit})</span></td></tr>`).join('');
+          body = `
+            <section class="dash-panel" style="margin-bottom:16px;">
+              <h3 style="margin:0 0 8px; color:var(--gold-bright);">${t('cheat.alphaTitle')}</h3>
+              <div style="overflow-x:auto;">
+                <table class="cheat-table"><thead><tr><th class="cheat-th">${t('cheat.colLetter')}</th><th class="cheat-th">${t('cheat.colName')}</th><th class="cheat-th">${t('cheat.colSound')}</th></tr></thead><tbody>${alphaRows}</tbody></table>
+              </div>
+            </section>
+            <section class="dash-panel" style="margin-bottom:16px;">
+              <h3 style="margin:0 0 8px; color:var(--gold-bright);">${t('cheat.nikudTitle')}</h3>
+              <div style="overflow-x:auto;">
+                <table class="cheat-table"><thead><tr><th class="cheat-th">${t('cheat.colSign')}</th><th class="cheat-th">${t('cheat.colName')}</th><th class="cheat-th">${t('cheat.colSound')}</th><th class="cheat-th">${t('cheat.colExample')}</th></tr></thead><tbody>${nikudRows}</tbody></table>
+              </div>
+            </section>
+            <section class="dash-panel" style="margin-bottom:16px;">
+              <h3 style="margin:0 0 8px; color:var(--gold-bright);">${t('cheat.prefixTitle')}</h3>
+              <div style="overflow-x:auto;">
+                <table class="cheat-table"><thead><tr><th class="cheat-th">${t('cheat.colPrefix')}</th><th class="cheat-th">${t('cheat.colMeaning')}</th><th class="cheat-th">${t('cheat.colExample')}</th></tr></thead><tbody>
+                  <tr><td class="cheat-td cheat-glyph">הַ־ / הֶ־</td><td class="cheat-td">${t('cheat.the')}</td><td class="cheat-td">הַבַּיִת (habayit)</td></tr>
+                  <tr><td class="cheat-td cheat-glyph">בְּ־ / בַּ־</td><td class="cheat-td">${t('cheat.in')}</td><td class="cheat-td">בַּבַּיִת (babayit)</td></tr>
+                  <tr><td class="cheat-td cheat-glyph">לְ־ / לַ־</td><td class="cheat-td">${t('cheat.to')}</td><td class="cheat-td">לַבַּיִת (labayit)</td></tr>
+                  <tr><td class="cheat-td cheat-glyph">כְּ־ / כַּ־</td><td class="cheat-td">${t('cheat.like')}</td><td class="cheat-td">כַּבַּיִת (kabayit)</td></tr>
+                  <tr><td class="cheat-td cheat-glyph">מִן־ / מֵ־</td><td class="cheat-td">${t('cheat.from')}</td><td class="cheat-td">מִן־הַבַּיִת (min-habayit)</td></tr>
+                  <tr><td class="cheat-td cheat-glyph">וְ־ / וַ־</td><td class="cheat-td">${t('cheat.and')}</td><td class="cheat-td">וּבַיִת (uvayit)</td></tr>
+                  <tr><td class="cheat-td cheat-glyph">שֶׁ־ / שֶׁ</td><td class="cheat-td">${t('cheat.that')}</td><td class="cheat-td">שֶׁהוּא (shehu)</td></tr>
+                </tbody></table>
+              </div>
+            </section>
+            <section class="dash-panel">
+              <h3 style="margin:0 0 8px; color:var(--gold-bright);">${t('cheat.pronTitle')}</h3>
+              <div style="overflow-x:auto;">
+                <table class="cheat-table"><thead><tr><th class="cheat-th">${t('cheat.colHe')}</th><th class="cheat-th">${t('cheat.colTr')}</th><th class="cheat-th">${t('cheat.colEn')}</th></tr></thead><tbody>
+                  <tr><td class="cheat-td cheat-glyph">אֲנִי</td><td class="cheat-td">ben</td><td class="cheat-td">I</td></tr>
+                  <tr><td class="cheat-td cheat-glyph">אַתָּה</td><td class="cheat-td">sen (erkek)</td><td class="cheat-td">you (m.)</td></tr>
+                  <tr><td class="cheat-td cheat-glyph">אַתְּ</td><td class="cheat-td">sen (kadın)</td><td class="cheat-td">you (f.)</td></tr>
+                  <tr><td class="cheat-td cheat-glyph">הוּא</td><td class="cheat-td">o (erkek)</td><td class="cheat-td">he</td></tr>
+                  <tr><td class="cheat-td cheat-glyph">הִיא</td><td class="cheat-td">o (kadın)</td><td class="cheat-td">she</td></tr>
+                  <tr><td class="cheat-td cheat-glyph">אֲנַחְנוּ</td><td class="cheat-td">biz</td><td class="cheat-td">we</td></tr>
+                  <tr><td class="cheat-td cheat-glyph">אַתֶּם / אַתֶּן</td><td class="cheat-td">siz</td><td class="cheat-td">you (pl.)</td></tr>
+                  <tr><td class="cheat-td cheat-glyph">הֵם / הֵן</td><td class="cheat-td">onlar</td><td class="cheat-td">they</td></tr>
+                </tbody></table>
+              </div>
+            </section>
+          `;
+        }
+
+        root.innerHTML = `
+          <div class="sub-nav">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <button class="btn" onclick="App.openBoard()">${t('nav.board')}</button>
+              <h2 style="margin:0; color:var(--gold-bright);">${t('nikud.title')}</h2>
+            </div>
+            <div class="tabs">${tabBtns}</div>
+          </div>
+          <div class="dash-wrap">${body}</div>
+        `;
+      },
 
     };
 
