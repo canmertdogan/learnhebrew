@@ -2385,6 +2385,8 @@ canvas#trace-canvas {
 .dict-root { font-style: italic; }
 .dict-actions { margin-left: auto; display: flex; gap: 4px; }
 .dict-actions .icon-btn { padding: 2px 6px; font-size: 0.9rem; }
+.dict-lowq { text-transform: uppercase; border: 1px solid rgba(140,100,34,0.25); border-radius: 999px; padding: 2px 8px; color: var(--ink-faded); background: rgba(140,100,34,0.08); }
+.dict-en-badge { display: inline-block; margin-left: 6px; font-size: 0.68rem; font-weight: 700; color: #fff; background: var(--crimson-wax); border-radius: 4px; padding: 1px 6px; vertical-align: middle; letter-spacing: 0.5px; }
 .dict-empty { text-align: center; color: var(--parchment-mid); font-style: italic; padding: 20px; }
 .dict-detail { text-align: center; padding: 24px 20px; }
 .dict-detail-heb { font-size: 3.4rem; color: var(--gold-bright); direction: rtl; font-family: "Arial Unicode MS", "Arial Hebrew", "Arial Hebrew Scholar", ".SF Hebrew", "SF Hebrew", "Times New Roman", serif; margin-bottom: 6px; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
@@ -4018,7 +4020,7 @@ body.no-anim *::after {
       openDictionary() {
         this.state.view = 'dictionary';
         this.state.dictQuery = '';
-        this.state.dictFilter = 'all';
+        this.state.dictFilter = this.state.dictFilter || 'meaningful';
         this.state.dictRoot = '';
         this.state.dictSort = this.state.dictSort || 'alpha';
         this.state.dictDetail = null;
@@ -5530,7 +5532,9 @@ body.no-anim *::after {
           if (seen.has(key)) return;
           seen.add(key);
           const hn = normHeb(h);
-          entries.push({ h, e: en || '', tr: tr || '', src, t: t || '', root: root || '', hNorm: hn, tNorm: (t || '').toLowerCase().trim(), hasEx: false });
+          const enOnly = !!(en && tr && tr === en);
+          const lowQ = /^(proper|noun|verb|adjective|adverb|pronoun|substantive|conjunction|preposition|particle|interjection|numeral|prefix|suffix|particle)\b/i.test((en || '').trim()) || /\[/.test(en || '');
+          entries.push({ h, e: en || '', tr: tr || '', src, t: t || '', root: root || '', hNorm: hn, tNorm: (t || '').toLowerCase().trim(), hasEx: false, enOnly, lowQ });
         };
         (window.HEBREW_DATA.words || []).forEach(e => add(e.h, e.e, e.tr, 'words', e.t, ''));
         (window.HEBREW_DATA.verbs || []).forEach(e => add(e.h, e.e, e.tr, 'verbs', e.t, ''));
@@ -5556,7 +5560,8 @@ body.no-anim *::after {
         let detailOverlay = '';
         if (detailEntry) {
           const e = detailEntry;
-          const meaning = (I18N.lang === 'tr') ? (e.tr || e.e) : (e.e || e.tr);
+          let meaning = (I18N.lang === 'tr') ? (e.tr || e.e) : (e.e || e.tr);
+          // enOnly badge rendered separately
           const examples = [];
           (window.HEBREW_TORAH || []).forEach(p => {
             (p.words || []).forEach(w => {
@@ -5572,7 +5577,7 @@ body.no-anim *::after {
                 <button class="dict-sheet-close" onclick="App.dictCloseDetail()">✕</button>
                 <div class="dict-detail-heb">${Store.esc(e.h)}</div>
                 ${e.t ? `<div class="dict-detail-translit">${Store.esc(e.t)}</div>` : ''}
-                <div class="dict-detail-meaning">${Store.esc(meaning || '')}</div>
+                <div class="dict-detail-meaning">${Store.esc(meaning || '')}${e.enOnly && I18N.lang === 'tr' ? ' <span class="dict-en-badge">EN</span>' : ''}</div>
                 <div class="dict-detail-badges">
                   <span class="dict-src">${Store.esc(e.src)}</span>
                   ${e.root ? `<span class="dict-root">root: ${Store.esc(e.root)}</span>` : ''}
@@ -5611,6 +5616,10 @@ body.no-anim *::after {
           filtered = filtered.filter(e => favs.has(e.h));
         } else if (filter === 'hasex') {
           filtered = filtered.filter(e => e.hasEx);
+        } else if (filter === 'meaningful') {
+          filtered = filtered.filter(e => !e.lowQ);
+        } else if (filter === 'tronly') {
+          filtered = filtered.filter(e => !e.enOnly);
         } else if (filter !== 'all') {
           filtered = filtered.filter(e => e.src === filter);
         }
@@ -5672,24 +5681,26 @@ body.no-anim *::after {
         const shown = filtered.slice(0, limit);
         const more = filtered.length - shown.length;
 
-        const filterChips = ['all', 'favs', 'hasex', 'words', 'verbs', 'sentences', 'torah', 'extra'].map(f => {
+        const filterChips = ['all', 'meaningful', 'tronly', 'favs', 'hasex', 'words', 'verbs', 'sentences', 'torah', 'extra'].map(f => {
           const label = f === 'all' ? (I18N.lang === 'tr' ? 'Tümü' : 'All')
-            : (f === 'favs' ? '★' : (f === 'hasex' ? (I18N.lang === 'tr' ? 'Örneği olan' : 'With example') : (I18N.lang === 'tr' ? ({words:'Kelimeler',verbs:'Fiiller',sentences:'Cümleler',torah:'Tevrat',extra:'Ek'}[f]) : f.charAt(0).toUpperCase() + f.slice(1))));
+            : (f === 'favs' ? '★' : (f === 'meaningful' ? (I18N.lang === 'tr' ? 'Anlamlı' : 'Meaningful') : (f === 'tronly' ? (I18N.lang === 'tr' ? 'Sadece Türkçe' : 'Turkish only') : (f === 'hasex' ? (I18N.lang === 'tr' ? 'Örneği olan' : 'With example') : (I18N.lang === 'tr' ? ({words:'Kelimeler',verbs:'Fiiller',sentences:'Cümleler',torah:'Tevrat',extra:'Ek'}[f]) : f.charAt(0).toUpperCase() + f.slice(1))))));
           const active = this.state.dictFilter === f;
           return `<button class="dict-chip ${active ? 'active' : ''}" onclick="App.dictSetFilter('${f}')">${label}</button>`;
         }).join('');
 
         const listHtml = shown.length ? shown.map(e => {
-          const meaning = I18N.lang === 'tr' ? (e.tr || e.e) : (e.e || e.tr);
+          let meaning = I18N.lang === 'tr' ? (e.tr || e.e) : (e.e || e.tr);
+          // enOnly badge rendered separately
           return `
             <div class="dict-card" onclick="App.dictOpenDetail(${JSON.stringify(e.h).replace(/"/g, '&quot;')})">
               <div class="dict-card-top">
                 <span class="dict-heb">${Store.esc(e.h)}</span>
                 ${e.t ? `<span class="dict-translit">${Store.esc(e.t)}</span>` : ''}
               </div>
-              <div class="dict-card-meaning">${highlightText(meaning || '', this.state.dictQuery || '')}</div>
+              <div class="dict-card-meaning">${highlightText(meaning || '', this.state.dictQuery || '')}${e.enOnly && I18N.lang === 'tr' ? ' <span class="dict-en-badge">EN</span>' : ''}</div>
               <div class="dict-card-meta">
                 <span class="dict-src">${Store.esc(e.src)}</span>
+                ${e.lowQ ? `<span class="dict-lowq">${I18N.lang === 'tr' ? 'dilbilgisi' : 'grammar'}</span>` : ''}
                 ${e.root ? `<span class="dict-root">root: ${Store.esc(e.root)}</span>` : ''}
                 <span class="dict-actions" onclick="event.stopPropagation();">
                   <button class="icon-btn" title="speak" onclick="Store.speak(${JSON.stringify(e.h).replace(/"/g, '&quot;')})">🔊</button>
@@ -5774,7 +5785,7 @@ body.no-anim *::after {
 
       dictSetFilter(f) {
         this.state.dictFilter = f;
-        this.state.dictLimit = 60;
+        this.state.dictLimit = 40;
         this.render();
       },
 
