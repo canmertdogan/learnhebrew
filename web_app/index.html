@@ -2364,6 +2364,45 @@ canvas#trace-canvas {
   .nikud-opt { padding: 8px 16px; min-width: 60px; }
 }
 
+/* ---------- Dictionary (expanded) ---------- */
+.dict-toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+.dict-search-wrap { position: relative; flex: 1; min-width: 180px; }
+.dict-search { width: 100%; padding-right: 34px; }
+.dict-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: var(--ink-faded); font-size: 1.1rem; cursor: pointer; padding: 2px 6px; }
+.dict-sort { padding: 8px 10px; border: 1.5px solid var(--gold-bronze); border-radius: 10px; background: #fffaf0; color: var(--ink-deep); font-size: 0.85rem; }
+.dict-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 10px; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.dict-chip { flex-shrink: 0; padding: 6px 12px; border: 1.5px solid var(--gold-bronze); border-radius: 999px; background: #fffaf0; color: var(--ink-deep); font-size: 0.78rem; cursor: pointer; white-space: nowrap; }
+.dict-chip.active { background: var(--gold-leaf); color: var(--ink-deep); border-color: var(--gold-bright); font-weight: 700; }
+.dict-list { display: flex; flex-direction: column; gap: 10px; }
+.dict-card { background: linear-gradient(90deg, #f3e5ca 0%, #e6d0ab 100%); border: 1.5px solid var(--gold-bronze); border-left: 5px solid var(--crimson-wax); border-radius: var(--radius-md); padding: 12px 14px; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,0.4); transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease); animation: slideUp 0.35s var(--ease) both; }
+.dict-card:hover { transform: translateX(4px); box-shadow: 0 5px 14px rgba(0,0,0,0.5); }
+.dict-card-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+.dict-heb { font-size: 1.5rem; color: var(--gold-bright); direction: rtl; font-family: "Arial Unicode MS", "Arial Hebrew", "Arial Hebrew Scholar", ".SF Hebrew", "SF Hebrew", "Times New Roman", serif; }
+.dict-translit { color: var(--crimson-wax); font-size: 0.85rem; font-style: italic; }
+.dict-card-meaning { color: var(--ink-deep); font-size: 0.95rem; line-height: 1.4; margin-bottom: 6px; }
+.dict-card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.72rem; color: var(--ink-faded); }
+.dict-src { text-transform: uppercase; border: 1px solid rgba(140,100,34,0.35); border-radius: 999px; padding: 2px 8px; }
+.dict-root { font-style: italic; }
+.dict-actions { margin-left: auto; display: flex; gap: 4px; }
+.dict-actions .icon-btn { padding: 2px 6px; font-size: 0.9rem; }
+.dict-empty { text-align: center; color: var(--parchment-mid); font-style: italic; padding: 20px; }
+.dict-detail { text-align: center; padding: 24px 20px; }
+.dict-detail-heb { font-size: 3.4rem; color: var(--gold-bright); direction: rtl; font-family: "Arial Unicode MS", "Arial Hebrew", "Arial Hebrew Scholar", ".SF Hebrew", "SF Hebrew", "Times New Roman", serif; margin-bottom: 6px; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.dict-detail-translit { color: var(--crimson-wax); font-size: 1.1rem; font-style: italic; margin-bottom: 10px; }
+.dict-detail-meaning { font-size: 1.15rem; color: var(--ink-deep); margin-bottom: 14px; line-height: 1.5; }
+.dict-detail-badges { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 14px; }
+.dict-detail-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.dict-example { padding: 8px 0; border-bottom: 1px solid rgba(140,100,34,0.2); color: var(--parchment-dark); font-size: 0.95rem; direction: rtl; text-align: right; line-height: 1.6; }
+.dict-related { display: flex; flex-wrap: wrap; gap: 6px; }
+@media (max-width: 760px) {
+  .dict-toolbar { flex-direction: column; align-items: stretch; }
+  .dict-sort { width: 100%; }
+  .dict-card { padding: 10px 12px; }
+  .dict-heb { font-size: 1.25rem; }
+  .dict-detail-heb { font-size: 2.6rem; }
+  .dict-card-meaning { font-size: 0.9rem; }
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 760px) {
   header { padding: 10px 14px; }
@@ -3061,6 +3100,8 @@ body.no-anim *::after {
           'dict.empty': "No matching entries.",
           'dict.learn': "Learn",
           'dict.fav': "★",
+          'dict.examples': "Example sentences",
+          'dict.related': "Related words",
           'nav.home': "Trail",
           'nav.write': "Write",
           'nav.torah': "Torah",
@@ -3326,6 +3367,8 @@ body.no-anim *::after {
           'dict.empty': "Eşleşen madde yok.",
           'dict.learn': "Öğren",
           'dict.fav': "★",
+          'dict.examples': "Örnek cümleler",
+          'dict.related': "İlgili kelimeler",
           'nav.home': "Yol",
           'nav.write': "Yaz",
           'nav.torah': "Tevrat",
@@ -3792,7 +3835,7 @@ body.no-anim *::after {
     ];
 
     const App = {
-      state: { view: 'dashboard', category: 'words', mode: 'flashcards', hwTab: 'letters', hwIndex: 0, nikudTab: 'guide' },
+      state: { view: 'dashboard', category: 'words', mode: 'flashcards', hwTab: 'letters', hwIndex: 0, nikudTab: 'guide', dictSort: 'alpha', dictDetail: null },
 
       init() {
         const tt = document.getElementById('toggle-translit');
@@ -5392,70 +5435,169 @@ body.no-anim *::after {
       },
 
       renderDictionary(root) {
-        const q = (this.state.dictQuery || '').trim().toLowerCase();
-        const all = this.buildDictEntries();
+        const stripNikud = (x) => (x || '').replace(/[\u0591-\u05C7]/g, '');
         const favs = new Set(this.state.dictFavs || []);
+        const all = this.buildDictEntries();
+
+        // ---- Detail view ----
+        if (this.state.dictDetail) {
+          const e = all.find(x => x.h === this.state.dictDetail);
+          if (!e) { this.state.dictDetail = null; }
+          else {
+            const meaning = (I18N.lang === 'tr') ? (e.tr || e.e) : (e.e || e.tr);
+            const examples = [];
+            (window.HEBREW_TORAH || []).forEach(p => {
+              (p.words || []).forEach(w => {
+                if (w.h === e.h || stripNikud(w.h) === stripNikud(e.h)) {
+                  if (p.he && examples.indexOf(p.he) < 0) examples.push(p.he);
+                }
+              });
+            });
+            const related = all.filter(x => x.root && x.root === e.root && x.h !== e.h).slice(0, 16);
+            root.innerHTML = `
+              <div class="sub-nav">
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                  <button class="btn" onclick="App.dictCloseDetail()">← ${I18N.lang === 'tr' ? 'Geri' : 'Back'}</button>
+                  <h2 style="margin:0; color:var(--gold-bright);">${t('dict.title')}</h2>
+                </div>
+              </div>
+              <div class="dash-wrap">
+                <section class="dict-detail">
+                  <div class="dict-detail-heb">${Store.esc(e.h)}</div>
+                  ${e.t ? `<div class="dict-detail-translit">${Store.esc(e.t)}</div>` : ''}
+                  <div class="dict-detail-meaning">${Store.esc(meaning || '')}</div>
+                  <div class="dict-detail-badges">
+                    <span class="dict-src">${Store.esc(e.src)}</span>
+                    ${e.root ? `<span class="dict-root">root: ${Store.esc(e.root)}</span>` : ''}
+                  </div>
+                  <div class="dict-detail-actions">
+                    <button class="btn primary" onclick="Store.speak(${JSON.stringify(e.h).replace(/"/g, '&quot;')})">🔊 ${I18N.lang === 'tr' ? 'Dinle' : 'Hear'}</button>
+                    <button class="btn" onclick="App.dictToggleFav(${JSON.stringify(e.h).replace(/"/g, '&quot;')})">${favs.has(e.h) ? '★' : '☆'} ${I18N.lang === 'tr' ? 'Favori' : 'Fav'}</button>
+                    <button class="btn" onclick="App.dictLearn(${JSON.stringify(e.h).replace(/"/g, '&quot;')}, ${JSON.stringify(e.tr).replace(/"/g, '&quot;')})">${t('dict.learn')}</button>
+                  </div>
+                </section>
+                ${examples.length ? `
+                <section class="dash-panel" style="margin-top:14px;">
+                  <h3 style="margin:0 0 8px; color:var(--gold-bright);">${t('dict.examples')}</h3>
+                  ${examples.map(ex => `<div class="dict-example">${Store.esc(ex)}</div>`).join('')}
+                </section>` : ''}
+                ${related.length ? `
+                <section class="dash-panel" style="margin-top:14px;">
+                  <h3 style="margin:0 0 8px; color:var(--gold-bright);">${t('dict.related')}</h3>
+                  <div class="dict-related">
+                    ${related.map(r => `<button class="btn" style="padding:4px 10px; font-size:0.85rem;" onclick="App.dictOpenDetail(${JSON.stringify(r.h).replace(/"/g, '&quot;')})">${Store.esc(r.h)}</button>`).join('')}
+                  </div>
+                </section>` : ''}
+              </div>
+            `;
+            return;
+          }
+        }
+
+        // ---- List view ----
+        const q = (this.state.dictQuery || '').trim().toLowerCase();
         const filter = this.state.dictFilter || 'all';
-        const rootFilter = this.state.dictRoot || '';
+        const sort = this.state.dictSort || 'alpha';
         let filtered = all;
-        if (rootFilter) filtered = filtered.filter(e => e.root === rootFilter);
         if (filter === 'favs') {
-          const favs = new Set(this.state.dictFavs || []);
           filtered = filtered.filter(e => favs.has(e.h));
         } else if (filter !== 'all') {
           filtered = filtered.filter(e => e.src === filter);
         }
         if (q) {
+          const qn = stripNikud(q);
           filtered = filtered.filter(e => {
             const h = e.h.toLowerCase();
+            const hn = stripNikud(h);
             const tr = (e.tr || '').toLowerCase();
+            const en = (e.e || '').toLowerCase();
             const t = (e.t || '').toLowerCase();
             const root = (e.root || '').toLowerCase();
-            return h.includes(q) || tr.includes(q) || t.includes(q) || root.includes(q);
+            const rn = stripNikud(root);
+            return h.includes(q) || hn.includes(qn) || tr.includes(q) || en.includes(q) || t.includes(q) || root.includes(q) || rn.includes(qn);
           });
         }
-        const limit = this.state.dictLimit || 60;
+        if (sort === 'meaning') {
+          filtered.sort((a, b) => {
+            const ma = (I18N.lang === 'tr' ? (a.tr || a.e) : (a.e || a.tr)) || '';
+            const mb = (I18N.lang === 'tr' ? (b.tr || b.e) : (b.e || b.tr)) || '';
+            return ma.localeCompare(mb);
+          });
+        } else if (sort === 'source') {
+          filtered.sort((a, b) => (a.src || '').localeCompare(b.src || '') || stripNikud(a.h).localeCompare(stripNikud(b.h)));
+        } else {
+          filtered.sort((a, b) => stripNikud(a.h).localeCompare(stripNikud(b.h)));
+        }
+        const limit = this.state.dictLimit || 40;
         const shown = filtered.slice(0, limit);
         const more = filtered.length - shown.length;
-        const listHtml = shown.length ? shown.map(e => `
-          <div class="browse-row">
-            <div class="browse-left">
-              <span class="heb" style="font-size:1.35rem; color:var(--gold-bright);">${Store.esc(e.h)}</span>
-              <span style="color:var(--crimson-wax); font-size:0.85rem; font-style:italic;">${Store.esc(e.t)}</span>
-              <span style="color:var(--ink-faded); font-size:0.85rem;">${Store.esc(I18N.lang === 'tr' ? (e.tr || e.e) : (e.e || e.tr))}</span>
-              ${e.root ? `<span style="font-size:0.7rem; color:var(--ink-faded);">root: ${Store.esc(e.root)}</span>` : ''}
+
+        const filterChips = ['all', 'favs', 'words', 'verbs', 'sentences', 'torah', 'extra'].map(f => {
+          const label = f === 'all' ? (I18N.lang === 'tr' ? 'Tümü' : 'All')
+            : (f === 'favs' ? '★' : (I18N.lang === 'tr' ? ({words:'Kelimeler',verbs:'Fiiller',sentences:'Cümleler',torah:'Tevrat',extra:'Ek'}[f]) : f.charAt(0).toUpperCase() + f.slice(1)));
+          const active = this.state.dictFilter === f;
+          return `<button class="dict-chip ${active ? 'active' : ''}" onclick="App.dictSetFilter('${f}')">${label}</button>`;
+        }).join('');
+
+        const listHtml = shown.length ? shown.map(e => {
+          const meaning = I18N.lang === 'tr' ? (e.tr || e.e) : (e.e || e.tr);
+          return `
+            <div class="dict-card" onclick="App.dictOpenDetail(${JSON.stringify(e.h).replace(/"/g, '&quot;')})">
+              <div class="dict-card-top">
+                <span class="dict-heb">${Store.esc(e.h)}</span>
+                ${e.t ? `<span class="dict-translit">${Store.esc(e.t)}</span>` : ''}
+              </div>
+              <div class="dict-card-meaning">${Store.esc(meaning || '')}</div>
+              <div class="dict-card-meta">
+                <span class="dict-src">${Store.esc(e.src)}</span>
+                ${e.root ? `<span class="dict-root">root: ${Store.esc(e.root)}</span>` : ''}
+                <span class="dict-actions" onclick="event.stopPropagation();">
+                  <button class="icon-btn" title="speak" onclick="Store.speak(${JSON.stringify(e.h).replace(/"/g, '&quot;')})">🔊</button>
+                  <button class="icon-btn" onclick="App.dictToggleFav(${JSON.stringify(e.h).replace(/"/g, '&quot;')})">${favs.has(e.h) ? '★' : '☆'}</button>
+                </span>
+              </div>
             </div>
-            <div class="browse-right">
-              <span style="font-size:0.7rem; color:var(--ink-faded); text-transform:uppercase;">${e.src}</span>
-              <button class="btn" style="padding:4px 8px; font-size:0.85rem;" onclick="App.dictToggleFav(${JSON.stringify(e.h).replace(/"/g, '&quot;')})">${favs.has(e.h) ? '★' : '☆'}</button>
-              <button class="btn" style="padding:6px 10px; font-size:0.78rem;" onclick="App.dictLearn(${JSON.stringify(e.h).replace(/"/g, '&quot;')}, ${JSON.stringify(e.tr).replace(/"/g, '&quot;')})">${t('dict.learn')}</button>
-            </div>
-          </div>
-        `).join('') : `<p style="text-align:center; color:var(--parchment-mid); font-style:italic; padding:20px;">${t('dict.empty')}</p>`;
+          `;
+        }).join('') : `<p class="dict-empty">${t('dict.empty')}</p>`;
+
         root.innerHTML = `
           <div class="sub-nav">
             <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <button class="btn" onclick="App.openBoard()">${t('nav.board')}</button>
               <h2 style="margin:0; color:var(--gold-bright);">${t('dict.title')}</h2>
-              <span style="color:var(--parchment-dark); font-style:italic; font-size:0.85rem;">${all.length} entries</span>
+              <span style="color:var(--ink-faded); font-size:0.8rem;">${filtered.length} / ${all.length}</span>
             </div>
           </div>
           <div class="dash-wrap">
-            <div class="dash-panel">
-              <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
-                ${['all','favs','words','verbs','sentences','torah'].map(f => `<button class="btn" style="padding:5px 11px; font-size:0.78rem; ${this.state.dictFilter===f ? 'border-color:var(--gold-bright); color:var(--gold-bright); background:rgba(224,178,82,0.12);' : ''}" onclick="App.dictSetFilter('${f}')">${f === 'all' ? 'All' : (f === 'favs' ? '★ Fav' : f)}</button>`).join('')}
+            <div class="dict-toolbar">
+              <div class="dict-search-wrap">
+                <input class="search-bar dict-search" id="dict-search" placeholder="${t('dict.search')}" value="${Store.esc(this.state.dictQuery || '')}" oninput="App.dictSearch(this.value)" />
+                ${this.state.dictQuery ? `<button class="dict-clear" onclick="App.dictSearch('')">✕</button>` : ''}
               </div>
-              <div style="margin-bottom:10px;">
-                <select class="search-bar" style="margin-bottom:0; padding:8px 12px;" onchange="App.dictSetRoot(this.value)">
-                  <option value="">All roots (${new Set(all.map(e=>e.root).filter(Boolean)).size})</option>
-                  ${[...new Set(all.map(e=>e.root).filter(Boolean))].sort().map(r => `<option value="${Store.esc(r)}" ${this.state.dictRoot===r?'selected':''}>${Store.esc(r)}</option>`).join('')}
-                </select>
-              </div>
-              <input class="search-bar" id="dict-search" placeholder="${t('dict.search')}" value="${Store.esc(this.state.dictQuery || '')}" oninput="App.dictSearch(this.value)" />
-              <div class="browse-list">${listHtml}</div>
-              ${more > 0 ? `<div style="text-align:center; margin-top:12px;"><button class="btn" onclick="App.dictMore()">${t('br.more', more)}</button></div>` : ''}
+              <select class="dict-sort" onchange="App.dictSetSort(this.value)">
+                <option value="alpha" ${sort === 'alpha' ? 'selected' : ''}>A–Z</option>
+                <option value="meaning" ${sort === 'meaning' ? 'selected' : ''}>${I18N.lang === 'tr' ? 'Anlam' : 'Meaning'}</option>
+                <option value="source" ${sort === 'source' ? 'selected' : ''}>${I18N.lang === 'tr' ? 'Kaynak' : 'Source'}</option>
+              </select>
             </div>
+            <div class="dict-chips">${filterChips}</div>
+            <div class="dict-list">${listHtml}</div>
+            ${more > 0 ? `<div style="text-align:center; margin-top:14px;"><button class="btn" onclick="App.dictMore()">${t('br.more', more)}</button></div>` : ''}
           </div>
         `;
+      },
+      dictOpenDetail(h) {
+        this.state.dictDetail = h;
+        this.render();
+      },
+      dictCloseDetail() {
+        this.state.dictDetail = null;
+        this.render();
+      },
+      dictSetSort(s) {
+        this.state.dictSort = s;
+        this.state.dictLimit = 40;
+        this.render();
       },
 
       dictSearch(v) {
