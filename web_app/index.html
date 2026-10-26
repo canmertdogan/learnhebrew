@@ -2403,6 +2403,19 @@ canvas#trace-canvas {
   .dict-card-meaning { font-size: 0.9rem; }
 }
 
+.dict-overlay { position: fixed; inset: 0; background: rgba(20,12,4,0.62); backdrop-filter: blur(3px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; animation: fadeIn 0.18s ease; }
+.dict-sheet { position: relative; background: var(--parchment-light); border: 2px solid var(--gold-bronze); border-radius: 18px; padding: 22px 20px; max-width: 520px; width: 100%; max-height: 86vh; overflow-y: auto; box-shadow: 0 18px 48px rgba(0,0,0,0.5); color: var(--ink-deep); animation: slideUp 0.22s var(--ease) both; }
+.dict-sheet-close { position: absolute; top: 10px; right: 12px; border: none; background: transparent; color: var(--ink-faded); font-size: 1.3rem; cursor: pointer; padding: 2px 6px; }
+.dict-sheet-close:hover { color: var(--crimson-wax); }
+.dict-sheet-section { margin-top: 14px; text-align: left; }
+.dict-sheet-section h3 { margin: 0 0 8px; color: var(--gold-bright); font-size: 1rem; }
+.dict-suggest { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; padding: 8px 10px; background: rgba(224,178,82,0.08); border: 1px dashed var(--gold-bronze); border-radius: 10px; }
+.dict-recent { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; }
+.dict-highlight { background: rgba(224,178,82,0.35); color: var(--ink-deep); padding: 0 2px; border-radius: 3px; font-weight: 700; }
+@media (max-width: 760px) {
+  .dict-sheet { max-height: 92vh; padding: 18px 14px; }
+  .dict-detail-heb { font-size: 2.4rem; }
+}
 /* ---------- Responsive ---------- */
 @media (max-width: 760px) {
   header { padding: 10px 14px; }
@@ -3905,6 +3918,20 @@ body.no-anim *::after {
       const fullQ = normHeb(tokens.join(' '));
       if (fullQ && hN === fullQ) score += 200;
       return score;
+    }
+
+    function highlightText(text, query) {
+      const t = Store.esc(text || '');
+      const q = (query || '').trim();
+      if (!q) return t;
+      // highlight each token (case-insensitive) in the escaped text
+      let out = t;
+      q.split(/\s+/).filter(Boolean).forEach(tok => {
+        if (!tok) return;
+        const safe = tok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        try { out = out.replace(new RegExp('(' + safe + ')', 'gi'), '<mark class="dict-highlight">$1</mark>'); } catch (e) {}
+      });
+      return out;
     }
 
     const App = {
@@ -5517,63 +5544,60 @@ body.no-anim *::after {
       },
 
       renderDictionary(root) {
+        const self = this;
+        document.onkeydown = (e) => { if (e.key === 'Escape' && self.state.dictDetail) self.dictCloseDetail(); };
         const stripNikud = (x) => (x || '').replace(/[\u0591-\u05C7]/g, '');
         const favs = new Set(this.state.dictFavs || []);
         const all = this.buildDictEntries();
 
-        // ---- Detail view ----
-        if (this.state.dictDetail) {
-          const e = all.find(x => x.h === this.state.dictDetail);
-          if (!e) { this.state.dictDetail = null; }
-          else {
-            const meaning = (I18N.lang === 'tr') ? (e.tr || e.e) : (e.e || e.tr);
-            const examples = [];
-            (window.HEBREW_TORAH || []).forEach(p => {
-              (p.words || []).forEach(w => {
-                if (w.h === e.h || stripNikud(w.h) === stripNikud(e.h)) {
-                  if (p.he && examples.indexOf(p.he) < 0) examples.push(p.he);
-                }
-              });
+        // ---- Detail overlay (computed, rendered on top of list) ----
+        const detailEntry = this.state.dictDetail ? (all.find(x => x.h === this.state.dictDetail) || null) : null;
+        if (this.state.dictDetail && !detailEntry) this.state.dictDetail = null;
+        let detailOverlay = '';
+        if (detailEntry) {
+          const e = detailEntry;
+          const meaning = (I18N.lang === 'tr') ? (e.tr || e.e) : (e.e || e.tr);
+          const examples = [];
+          (window.HEBREW_TORAH || []).forEach(p => {
+            (p.words || []).forEach(w => {
+              if (w.h === e.h || stripNikud(w.h) === stripNikud(e.h)) {
+                if (p.he && examples.indexOf(p.he) < 0) examples.push(p.he);
+              }
             });
-            const related = all.filter(x => x.root && x.root === e.root && x.h !== e.h).slice(0, 16);
-            root.innerHTML = `
-              <div class="sub-nav">
-                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                  <button class="btn" onclick="App.dictCloseDetail()">← ${I18N.lang === 'tr' ? 'Geri' : 'Back'}</button>
-                  <h2 style="margin:0; color:var(--gold-bright);">${t('dict.title')}</h2>
+          });
+          const related = all.filter(x => x.root && x.root === e.root && x.h !== e.h).slice(0, 16);
+          detailOverlay = `
+            <div class="dict-overlay" onclick="if (event.target === this) App.dictCloseDetail();">
+              <div class="dict-sheet">
+                <button class="dict-sheet-close" onclick="App.dictCloseDetail()">✕</button>
+                <div class="dict-detail-heb">${Store.esc(e.h)}</div>
+                ${e.t ? `<div class="dict-detail-translit">${Store.esc(e.t)}</div>` : ''}
+                <div class="dict-detail-meaning">${Store.esc(meaning || '')}</div>
+                <div class="dict-detail-badges">
+                  <span class="dict-src">${Store.esc(e.src)}</span>
+                  ${e.root ? `<span class="dict-root">root: ${Store.esc(e.root)}</span>` : ''}
                 </div>
-              </div>
-              <div class="dash-wrap">
-                <section class="dict-detail">
-                  <div class="dict-detail-heb">${Store.esc(e.h)}</div>
-                  ${e.t ? `<div class="dict-detail-translit">${Store.esc(e.t)}</div>` : ''}
-                  <div class="dict-detail-meaning">${Store.esc(meaning || '')}</div>
-                  <div class="dict-detail-badges">
-                    <span class="dict-src">${Store.esc(e.src)}</span>
-                    ${e.root ? `<span class="dict-root">root: ${Store.esc(e.root)}</span>` : ''}
-                  </div>
-                  <div class="dict-detail-actions">
-                    <button class="btn primary" onclick="Store.speak(${JSON.stringify(e.h).replace(/"/g, '&quot;')})">🔊 ${I18N.lang === 'tr' ? 'Dinle' : 'Hear'}</button>
-                    <button class="btn" onclick="App.dictToggleFav(${JSON.stringify(e.h).replace(/"/g, '&quot;')})">${favs.has(e.h) ? '★' : '☆'} ${I18N.lang === 'tr' ? 'Favori' : 'Fav'}</button>
-                    <button class="btn" onclick="App.dictLearn(${JSON.stringify(e.h).replace(/"/g, '&quot;')}, ${JSON.stringify(e.tr).replace(/"/g, '&quot;')})">${t('dict.learn')}</button>
-                  </div>
-                </section>
+                <div class="dict-detail-actions">
+                  <button class="btn primary" onclick="Store.speak(${JSON.stringify(e.h).replace(/"/g, '&quot;')})">🔊 ${I18N.lang === 'tr' ? 'Dinle' : 'Hear'}</button>
+                  <button class="btn" onclick="App.dictToggleFav(${JSON.stringify(e.h).replace(/"/g, '&quot;')})">${favs.has(e.h) ? '★' : '☆'} ${I18N.lang === 'tr' ? 'Favori' : 'Fav'}</button>
+                  <button class="btn" onclick="App.dictLearn(${JSON.stringify(e.h).replace(/"/g, '&quot;')}, ${JSON.stringify(e.tr).replace(/"/g, '&quot;')})">${t('dict.learn')}</button>
+                  <button class="btn" onclick="navigator.clipboard && navigator.clipboard.writeText(${JSON.stringify(e.h).replace(/"/g, '&quot;')})">📋 ${I18N.lang === 'tr' ? 'Kopyala' : 'Copy'}</button>
+                </div>
                 ${examples.length ? `
-                <section class="dash-panel" style="margin-top:14px;">
-                  <h3 style="margin:0 0 8px; color:var(--gold-bright);">${t('dict.examples')}</h3>
+                <div class="dict-sheet-section">
+                  <h3>${t('dict.examples')}</h3>
                   ${examples.map(ex => `<div class="dict-example">${Store.esc(ex)}</div>`).join('')}
-                </section>` : ''}
+                </div>` : ''}
                 ${related.length ? `
-                <section class="dash-panel" style="margin-top:14px;">
-                  <h3 style="margin:0 0 8px; color:var(--gold-bright);">${t('dict.related')}</h3>
+                <div class="dict-sheet-section">
+                  <h3>${t('dict.related')}</h3>
                   <div class="dict-related">
                     ${related.map(r => `<button class="btn" style="padding:4px 10px; font-size:0.85rem;" onclick="App.dictOpenDetail(${JSON.stringify(r.h).replace(/"/g, '&quot;')})">${Store.esc(r.h)}</button>`).join('')}
                   </div>
-                </section>` : ''}
+                </div>` : ''}
               </div>
-            `;
-            return;
-          }
+            </div>
+          `;
         }
 
         // ---- List view ----
@@ -5663,7 +5687,7 @@ body.no-anim *::after {
                 <span class="dict-heb">${Store.esc(e.h)}</span>
                 ${e.t ? `<span class="dict-translit">${Store.esc(e.t)}</span>` : ''}
               </div>
-              <div class="dict-card-meaning">${Store.esc(meaning || '')}</div>
+              <div class="dict-card-meaning">${highlightText(meaning || '', this.state.dictQuery || '')}</div>
               <div class="dict-card-meta">
                 <span class="dict-src">${Store.esc(e.src)}</span>
                 ${e.root ? `<span class="dict-root">root: ${Store.esc(e.root)}</span>` : ''}
@@ -5711,6 +5735,7 @@ body.no-anim *::after {
             <div class="dict-list">${listHtml}</div>
             ${more > 0 ? `<div style="text-align:center; margin-top:14px;"><button class="btn" onclick="App.dictMore()">${t('br.more', more)}</button></div>` : ''}
           </div>
+          ${detailOverlay}
         `;
       },
       dictOpenDetail(h) {
