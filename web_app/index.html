@@ -3834,6 +3834,79 @@ body.no-anim *::after {
       { id: 'rank10',    need: (st, sto) => sto.xpLevel(st.xp || 0).lvl >= 10 }
     ];
 
+    function normHeb(x) { return (x || '').replace(/[\u0591-\u05C7]/g, '').replace(/[ךםןףץ]/g, (c) => ({'ך':'כ','ם':'מ','ן':'נ','ף':'פ','ץ':'צ'}[c])).trim().toLowerCase(); }
+    function normLat(x) { return (x || '').toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim(); }
+    function levenshtein(a, b) {
+      a = a || ''; b = b || '';
+      if (a === b) return 0;
+      if (!a.length) return b.length;
+      if (!b.length) return a.length;
+      let prev = Array.from({length: b.length + 1}, (_, i) => i);
+      for (let i = 1; i <= a.length; i++) {
+        let cur = [i];
+        for (let j = 1; j <= b.length; j++) {
+          const cost = a.charAt(i-1) === b.charAt(j-1) ? 0 : 1;
+          cur[j] = Math.min(prev[j] + 1, cur[j-1] + 1, prev[j-1] + cost);
+        }
+        prev = cur;
+      }
+      return prev[b.length];
+    }
+    function scoreEntry(e, tokens) {
+      // tokens: array of query tokens (already normalized by caller? we pass raw tokens)
+      const hN = e.hNorm || '';
+      const tN = e.tNorm || '';
+      const meaning = (I18N.lang === 'tr' ? (e.tr || e.e) : (e.e || e.tr)) || '';
+      const mN = meaning.toLowerCase();
+      const rootN = (e.root || '').toLowerCase();
+      let score = 0;
+      let allMatch = true;
+      for (const tok of tokens) {
+        const qh = normHeb(tok);
+        const ql = normLat(tok);
+        let tokScore = 0;
+        let matched = false;
+        // Hebrew field
+        if (qh) {
+          if (hN === qh) { tokScore = Math.max(tokScore, 100); matched = true; }
+          else if (hN.startsWith(qh)) { tokScore = Math.max(tokScore, 60); matched = true; }
+          else if (hN.includes(qh)) { tokScore = Math.max(tokScore, 30); matched = true; }
+          else {
+            const d = levenshtein(hN, qh);
+            if (d <= 2 && hN.length > 2) { tokScore = Math.max(tokScore, 15 - d * 4); matched = true; }
+          }
+        }
+        // transliteration field
+        if (ql && tN) {
+          if (tN === ql) { tokScore = Math.max(tokScore, 80); matched = true; }
+          else if (tN.startsWith(ql)) { tokScore = Math.max(tokScore, 50); matched = true; }
+          else if (tN.includes(ql)) { tokScore = Math.max(tokScore, 20); matched = true; }
+          else {
+            const d = levenshtein(tN, ql);
+            if (d <= 2 && tN.length > 3) { tokScore = Math.max(tokScore, 10 - d * 3); matched = true; }
+          }
+        }
+        // meaning field
+        if (ql && mN) {
+          const words = mN.split(/\s+/);
+          if (words.indexOf(ql) >= 0) { tokScore = Math.max(tokScore, 40); matched = true; }
+          else if (mN.startsWith(ql)) { tokScore = Math.max(tokScore, 25); matched = true; }
+          else if (mN.includes(ql)) { tokScore = Math.max(tokScore, 15); matched = true; }
+        }
+        // root field
+        if (ql && rootN) {
+          if (rootN === ql || rootN.includes(ql)) { tokScore = Math.max(tokScore, 25); matched = true; }
+        }
+        if (!matched) { allMatch = false; }
+        score += tokScore;
+      }
+      if (!allMatch && tokens.length > 1) score = Math.floor(score * 0.3);
+      // boost exact full-query match on hebrew
+      const fullQ = normHeb(tokens.join(' '));
+      if (fullQ && hN === fullQ) score += 200;
+      return score;
+    }
+
     const App = {
       state: { view: 'dashboard', category: 'words', mode: 'flashcards', hwTab: 'letters', hwIndex: 0, nikudTab: 'guide', dictSort: 'alpha', dictDetail: null },
 
@@ -3920,7 +3993,10 @@ body.no-anim *::after {
         this.state.dictQuery = '';
         this.state.dictFilter = 'all';
         this.state.dictRoot = '';
+        this.state.dictSort = this.state.dictSort || 'alpha';
+        this.state.dictDetail = null;
         this.state.dictFavs = JSON.parse(localStorage.getItem('heb_dict_favs') || '[]');
+        this.state.dictRecent = JSON.parse(localStorage.getItem('heb_dict_recent') || '[]');
         this.render();
       },
 
@@ -5420,17 +5496,23 @@ body.no-anim *::after {
       buildDictEntries() {
         const entries = [];
         const seen = new Set();
+        const stripNikud = (x) => (x || '').replace(/[\u0591-\u05C7]/g, '');
+        const normHeb = (x) => stripNikud(x || '').replace(/[ךםןףץ]/g, (c) => ({'ך':'כ','ם':'מ','ן':'נ','ף':'פ','ץ':'צ'}[c])).trim();
         const add = (h, en, tr, src, t, root) => {
           const key = h + '|' + (tr || en);
           if (seen.has(key)) return;
           seen.add(key);
-          entries.push({ h, e: en || '', tr: tr || '', src, t: t || '', root: root || '' });
+          const hn = normHeb(h);
+          entries.push({ h, e: en || '', tr: tr || '', src, t: t || '', root: root || '', hNorm: hn, tNorm: (t || '').toLowerCase().trim(), hasEx: false });
         };
         (window.HEBREW_DATA.words || []).forEach(e => add(e.h, e.e, e.tr, 'words', e.t, ''));
         (window.HEBREW_DATA.verbs || []).forEach(e => add(e.h, e.e, e.tr, 'verbs', e.t, ''));
         (window.HEBREW_DATA.sentences || []).forEach(e => add(e.h, e.e, e.tr, 'sentences', e.t, ''));
-        (window.HEBREW_TORAH || []).forEach(p => (p.words || []).forEach(w => add(w.h, '', w.tr, 'torah', w.t, w.root)));
+        (window.HEBREW_TORAH || []).forEach(p => (p.words || []).forEach(w => { add(w.h, '', w.tr, 'torah', w.t, w.root); }));
         (window.HEBREW_DICT_EXTRA || []).forEach(e => add(e.h, e.e, e.tr, 'extra', e.t, ''));
+        const exSet = new Set();
+        (window.HEBREW_TORAH || []).forEach(p => (p.words || []).forEach(w => exSet.add(stripNikud(w.h))));
+        entries.forEach(e => { if (exSet.has(stripNikud(e.h))) e.hasEx = true; });
         return entries;
       },
 
@@ -5495,46 +5577,80 @@ body.no-anim *::after {
         }
 
         // ---- List view ----
-        const q = (this.state.dictQuery || '').trim().toLowerCase();
+        const q = (this.state.dictQuery || '').trim();
         const filter = this.state.dictFilter || 'all';
         const sort = this.state.dictSort || 'alpha';
+        const tokens = q ? q.split(/\s+/).filter(Boolean) : [];
         let filtered = all;
+        // source / fav filter
         if (filter === 'favs') {
           filtered = filtered.filter(e => favs.has(e.h));
+        } else if (filter === 'hasex') {
+          filtered = filtered.filter(e => e.hasEx);
         } else if (filter !== 'all') {
           filtered = filtered.filter(e => e.src === filter);
         }
-        if (q) {
-          const qn = stripNikud(q);
-          filtered = filtered.filter(e => {
-            const h = e.h.toLowerCase();
-            const hn = stripNikud(h);
-            const tr = (e.tr || '').toLowerCase();
-            const en = (e.e || '').toLowerCase();
-            const t = (e.t || '').toLowerCase();
-            const root = (e.root || '').toLowerCase();
-            const rn = stripNikud(root);
-            return h.includes(q) || hn.includes(qn) || tr.includes(q) || en.includes(q) || t.includes(q) || root.includes(q) || rn.includes(qn);
-          });
+        // scoring
+        let scored = filtered;
+        if (tokens.length) {
+          scored = filtered.map(e => ({ e, score: scoreEntry(e, tokens) })).filter(x => x.score > 0).sort((a, b) => b.score - a.score);
+          // fuzzy fallback if too few results
+          if (scored.length < 5) {
+            const extra = filtered.map(e => ({ e, score: scoreEntry(e, tokens.map(t => t)) })).filter(x => x.score === 0);
+            // try single-token fuzzy on hebrew/translit
+            filtered.forEach(e => {
+              if (scored.find(x => x.e === e)) return;
+              const hN = e.hNorm || '';
+              const tN = e.tNorm || '';
+              let best = 0;
+              for (const tok of tokens) {
+                const qh = normHeb(tok); const ql = normLat(tok);
+                if (qh && hN) { const d = levenshtein(hN, qh); if (d <= 2 && hN.length > 2) best = Math.max(best, 8 - d * 2); }
+                if (ql && tN) { const d = levenshtein(tN, ql); if (d <= 2 && tN.length > 3) best = Math.max(best, 6 - d * 2); }
+              }
+              if (best > 0) scored.push({ e, score: best });
+            });
+            scored.sort((a, b) => b.score - a.score);
+          }
+          filtered = scored.map(x => x.e);
         }
-        if (sort === 'meaning') {
-          filtered.sort((a, b) => {
-            const ma = (I18N.lang === 'tr' ? (a.tr || a.e) : (a.e || a.tr)) || '';
-            const mb = (I18N.lang === 'tr' ? (b.tr || b.e) : (b.e || b.tr)) || '';
-            return ma.localeCompare(mb);
-          });
-        } else if (sort === 'source') {
-          filtered.sort((a, b) => (a.src || '').localeCompare(b.src || '') || stripNikud(a.h).localeCompare(stripNikud(b.h)));
-        } else {
-          filtered.sort((a, b) => stripNikud(a.h).localeCompare(stripNikud(b.h)));
+        // suggestions when no results
+        this.state.dictSuggestions = [];
+        if (q && filtered.length === 0) {
+          // find closest entries by levenshtein on meaning/translit
+          const cands = all.map(e => {
+            const meaning = (I18N.lang === 'tr' ? (e.tr || e.e) : (e.e || e.tr)) || '';
+            const d1 = levenshtein(normLat(q), normLat(e.t || ''));
+            const d2 = levenshtein(normLat(q), normLat(meaning));
+            return { e, d: Math.min(d1, d2) };
+          }).sort((a, b) => a.d - b.d).slice(0, 5);
+          this.state.dictSuggestions = cands.filter(c => c.d <= Math.max(3, Math.floor(q.length * 0.6))).map(c => c.e);
+        }
+        // sort (only if no query, or as tiebreak already handled by score; apply user sort on top for non-query)
+        if (!tokens.length) {
+          if (sort === 'meaning') {
+            filtered.sort((a, b) => {
+              const ma = (I18N.lang === 'tr' ? (a.tr || a.e) : (a.e || a.tr)) || '';
+              const mb = (I18N.lang === 'tr' ? (b.tr || b.e) : (b.e || b.tr)) || '';
+              return ma.localeCompare(mb);
+            });
+          } else if (sort === 'source') {
+            filtered.sort((a, b) => (a.src || '').localeCompare(b.src || '') || normHeb(a.h).localeCompare(normHeb(b.h)));
+          } else {
+            filtered.sort((a, b) => normHeb(a.h).localeCompare(normHeb(b.h)));
+          }
+        }
+        // recent searches
+        if (q && tokens.length && !this._recentPushed) {
+          this._recentPushed = q;
         }
         const limit = this.state.dictLimit || 40;
         const shown = filtered.slice(0, limit);
         const more = filtered.length - shown.length;
 
-        const filterChips = ['all', 'favs', 'words', 'verbs', 'sentences', 'torah', 'extra'].map(f => {
+        const filterChips = ['all', 'favs', 'hasex', 'words', 'verbs', 'sentences', 'torah', 'extra'].map(f => {
           const label = f === 'all' ? (I18N.lang === 'tr' ? 'Tümü' : 'All')
-            : (f === 'favs' ? '★' : (I18N.lang === 'tr' ? ({words:'Kelimeler',verbs:'Fiiller',sentences:'Cümleler',torah:'Tevrat',extra:'Ek'}[f]) : f.charAt(0).toUpperCase() + f.slice(1)));
+            : (f === 'favs' ? '★' : (f === 'hasex' ? (I18N.lang === 'tr' ? 'Örneği olan' : 'With example') : (I18N.lang === 'tr' ? ({words:'Kelimeler',verbs:'Fiiller',sentences:'Cümleler',torah:'Tevrat',extra:'Ek'}[f]) : f.charAt(0).toUpperCase() + f.slice(1))));
           const active = this.state.dictFilter === f;
           return `<button class="dict-chip ${active ? 'active' : ''}" onclick="App.dictSetFilter('${f}')">${label}</button>`;
         }).join('');
@@ -5581,6 +5697,17 @@ body.no-anim *::after {
               </select>
             </div>
             <div class="dict-chips">${filterChips}</div>
+            ${this.state.dictSuggestions && this.state.dictSuggestions.length ? `
+              <div class="dict-suggest">
+                <span style="color:var(--ink-faded); font-size:0.8rem; font-style:italic;">${I18N.lang === 'tr' ? 'Bunu mu demek istediniz?' : 'Did you mean?'}</span>
+                ${this.state.dictSuggestions.map(e => `<button class="btn" style="padding:4px 10px; font-size:0.85rem;" onclick="App.dictSearch(${JSON.stringify(e.h).replace(/"/g,'&quot;')})">${Store.esc(e.h)}</button>`).join('')}
+              </div>` : ''}
+            ${!q && this.state.dictRecent && this.state.dictRecent.length ? `
+              <div class="dict-recent">
+                <span style="color:var(--ink-faded); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.6px;">${I18N.lang === 'tr' ? 'Son aramalar' : 'Recent'}</span>
+                ${this.state.dictRecent.map(r => `<button class="dict-chip" onclick="App.dictSearch(${JSON.stringify(r).replace(/"/g,'&quot;')})">${Store.esc(r)}</button>`).join('')}
+                <button class="dict-clear" style="position:static; transform:none;" onclick="App.dictClearRecent()">✕</button>
+              </div>` : ''}
             <div class="dict-list">${listHtml}</div>
             ${more > 0 ? `<div style="text-align:center; margin-top:14px;"><button class="btn" onclick="App.dictMore()">${t('br.more', more)}</button></div>` : ''}
           </div>
@@ -5602,7 +5729,21 @@ body.no-anim *::after {
 
       dictSearch(v) {
         this.state.dictQuery = v;
-        this.state.dictLimit = 60;
+        this.state.dictLimit = 40;
+        if (v && v.trim()) {
+          const r = this.state.dictRecent || [];
+          const val = v.trim();
+          const idx = r.indexOf(val);
+          if (idx >= 0) r.splice(idx, 1);
+          r.unshift(val);
+          this.state.dictRecent = r.slice(0, 8);
+          try { localStorage.setItem('heb_dict_recent', JSON.stringify(this.state.dictRecent)); } catch (e) {}
+        }
+        this.render();
+      },
+      dictClearRecent() {
+        this.state.dictRecent = [];
+        try { localStorage.removeItem('heb_dict_recent'); } catch (e) {}
         this.render();
       },
 
